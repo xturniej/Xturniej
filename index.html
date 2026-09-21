@@ -124,7 +124,7 @@
     display:grid; grid-template-columns:1fr; gap:14px; margin-top:20px;
   }
   @media(min-width:640px){ .home-grid{grid-template-columns:repeat(2,1fr);} }
-  @media(min-width:900px){ .home-grid{grid-template-columns:repeat(4,1fr);} }
+  @media(min-width:900px){ .home-grid{grid-template-columns:repeat(auto-fit, minmax(180px,1fr));} }
   .home-card{
     background:var(--panel); border:3px solid var(--panel-border);
     box-shadow:5px 5px 0 var(--shadow);
@@ -209,6 +209,21 @@
   }
   .ann-new textarea{min-height:60px; resize:vertical;}
 
+  .reg-form{display:flex; flex-direction:column; gap:14px; max-width:480px;}
+  .reg-player, .reg-team{
+    background:var(--panel); border:3px solid var(--panel-border);
+    box-shadow:4px 4px 0 var(--shadow); padding:12px; display:flex; flex-direction:column; gap:8px;
+  }
+  .reg-player-title{font-size:10px; color:var(--accent3); margin-bottom:2px;}
+  .reg-form input, .reg-form select{
+    font-family:inherit; font-size:10px; background:var(--bg2); color:var(--text);
+    border:2px solid var(--panel-border); padding:9px;
+  }
+  #reg-status{font-size:9px; min-height:14px;}
+  #reg-status.ok{color:var(--accent3);}
+  #reg-status.err{color:var(--danger);}
+  #reg-submit:disabled{opacity:.6; cursor:default;}
+
   /* modal */
   .modal-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.65);
@@ -248,6 +263,7 @@
     <button class="navbtn" data-view="announcements">Ogłoszenia</button>
     <button class="navbtn" data-view="challenges">Wyzwania</button>
     <button class="navbtn" data-view="players">Gracze</button>
+    <button class="navbtn" data-view="registration">Zgłoszenia</button>
   </nav>
 </header>
 
@@ -281,6 +297,11 @@
         <span class="icon">🧑‍🤝‍🧑</span>
         <h3>GRACZE</h3>
         <span class="desc">Pełna lista zawodników</span>
+      </div>
+      <div class="home-card" data-goto="registration">
+        <span class="icon">📝</span>
+        <h3>ZGŁOSZENIA</h3>
+        <span class="desc">Zgłoś swoją drużynę</span>
       </div>
     </div>
   </section>
@@ -329,9 +350,37 @@
     <div class="grid8" id="players-grid"></div>
   </section>
 
+  <!-- REGISTRATION -->
+  <section class="view" id="view-registration">
+    <div class="toolbar">
+      <h2>📝 Zgłoszenie drużyny</h2>
+    </div>
+    <p style="margin-bottom:16px;">Podaj 3 graczy (nick MC + nick Discord) oraz wybierz drużynę. Zgłoszenie trafi mailem do organizatora.</p>
+    <form id="reg-form" class="reg-form">
+      <div class="reg-player" data-player="1">
+        <div class="reg-player-title">Gracz 1</div>
+        <input type="text" name="p1_mc" placeholder="Nick MC" required>
+        <input type="text" name="p1_discord" placeholder="Nick Discord" required>
+      </div>
+      <div class="reg-player" data-player="2">
+        <div class="reg-player-title">Gracz 2</div>
+        <input type="text" name="p2_mc" placeholder="Nick MC" required>
+        <input type="text" name="p2_discord" placeholder="Nick Discord" required>
+      </div>
+      <div class="reg-player" data-player="3">
+        <div class="reg-player-title">Gracz 3</div>
+        <input type="text" name="p3_mc" placeholder="Nick MC" required>
+        <input type="text" name="p3_discord" placeholder="Nick Discord" required>
+      </div>
+      <button type="submit" class="btn primary" id="reg-submit">Wyślij zgłoszenie</button>
+      <div id="reg-status"></div>
+    </form>
+  </section>
+
 </main>
 
 <footer>
+
   Turniej X nie jest powiązany ani sponsorowany przez Mojang ani Microsoft.<br>
   dane zapisywane lokalnie w tej przeglądarce<br>
   © 2026 Turniej X
@@ -354,6 +403,8 @@
 (function(){
   "use strict";
   var ACCESS_CODE_HASH = 2085739307; // kod dostępu zapisany jako hash, nie jawnym tekstem
+  // Klucz z web3forms.com powiązany z adresem wilkzx_code@wp.pl — wstaw go poniżej
+  var WEB3FORMS_ACCESS_KEY = "a1f7ac46-7aa0-41f2-95ce-3c2610400645";
   function hashCode(str){
     var h = 5381;
     for(var i=0;i<str.length;i++){
@@ -759,6 +810,66 @@
       }
 
       playersGrid.appendChild(card);
+    });
+  }
+
+  // ---------- REGISTRATION (Zgłoszenia) ----------
+  var regForm = document.getElementById('reg-form');
+  var regStatus = document.getElementById('reg-status');
+  var regSubmit = document.getElementById('reg-submit');
+
+  if(regForm){
+    regForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      regStatus.className = "";
+      regStatus.textContent = "";
+
+      if(WEB3FORMS_ACCESS_KEY === "WSTAW_TU_SWOJ_KLUCZ_Z_WEB3FORMS"){
+        regStatus.className = "err";
+        regStatus.textContent = "Formularz nie jest jeszcze podłączony (brak klucza Web3Forms).";
+        return;
+      }
+
+      var fd = new FormData(regForm);
+      var payload = {
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: "Nowe zgłoszenie — Turniej X",
+        "from_name": "Turniej X — formularz zgłoszeń",
+        "Gracz 1 — Nick MC": fd.get('p1_mc'),
+        "Gracz 1 — Nick Discord": fd.get('p1_discord'),
+        "Gracz 2 — Nick MC": fd.get('p2_mc'),
+        "Gracz 2 — Nick Discord": fd.get('p2_discord'),
+        "Gracz 3 — Nick MC": fd.get('p3_mc'),
+        "Gracz 3 — Nick Discord": fd.get('p3_discord')
+      };
+
+      regSubmit.disabled = true;
+      regSubmit.textContent = "Wysyłanie...";
+
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        regSubmit.disabled = false;
+        regSubmit.textContent = "Wyślij zgłoszenie";
+        if(data && data.success){
+          regStatus.className = "ok";
+          regStatus.textContent = "✅ Zgłoszenie wysłane! Do zobaczenia na turnieju.";
+          regForm.reset();
+        } else {
+          regStatus.className = "err";
+          regStatus.textContent = "❌ Coś poszło nie tak. Spróbuj ponownie.";
+        }
+      })
+      .catch(function(){
+        regSubmit.disabled = false;
+        regSubmit.textContent = "Wyślij zgłoszenie";
+        regStatus.className = "err";
+        regStatus.textContent = "❌ Brak połączenia. Spróbuj ponownie.";
+      });
     });
   }
 
