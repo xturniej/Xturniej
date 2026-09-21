@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TURNIEJ X</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f0a1e;
+    --bg2:#1a1236;
+    --panel:#221a3f;
+    --panel-border:#4a3b7a;
+    --text:#f2eaff;
+    --text-dim:#b6a8dd;
+    --accent:#ffd93d;
+    --accent2:#ff5d8f;
+    --accent3:#4fe0c5;
+    --accent4:#6f6bff;
+    --danger:#ff5d5d;
+    --shadow:#000000;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  :root:not([data-theme="light"]){ }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#eef0ff;
+      --bg2:#ffffff;
+      --panel:#ffffff;
+      --panel-border:#c9c0f5;
+      --text:#241a45;
+      --text-dim:#5c4f8a;
+      --shadow:#c9c0f5;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f0a1e;
+    --bg2:#1a1236;
+    --panel:#221a3f;
+    --panel-border:#4a3b7a;
+    --text:#f2eaff;
+    --text-dim:#b6a8dd;
+    --shadow:#000000;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%;}
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100%;
+    background:
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    color:var(--text);
+    font-family:'Press Start 2P', ui-monospace, monospace;
+    font-size:11px;
+    line-height:1.7;
+    image-rendering:pixelated;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--panel-border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--panel-border) 1px, transparent 1px);
+    background-size:24px 24px;
+    opacity:0.08;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  header{
+    position:sticky; top:0; top:env(safe-area-inset-top,0px);
+    z-index:20;
+    background:var(--bg2);
+    border-bottom:4px solid var(--accent4);
+    padding:14px 12px calc(14px);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    flex-wrap:wrap;
+  }
+  .logo{
+    font-size:14px;
+    color:var(--accent);
+    text-shadow:2px 2px 0 var(--shadow);
+    letter-spacing:1px;
+    white-space:nowrap;
+  }
+  nav{display:flex; gap:6px; flex-wrap:wrap;}
+  .navbtn{
+    font-family:inherit; font-size:9px; cursor:pointer;
+    background:var(--panel); color:var(--text);
+    border:3px solid var(--panel-border);
+    padding:8px 8px;
+    box-shadow:3px 3px 0 var(--shadow);
+    transition:transform .05s ease;
+  }
+  .navbtn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow);}
+  .navbtn.active{background:var(--accent4); color:#fff; border-color:var(--accent4);}
+
+  main{
+    position:relative; z-index:1;
+    max-width:900px; margin:0 auto;
+    padding:20px 14px 60px;
+  }
+  section.view{display:none;}
+  section.view.active{display:block; animation:pop .25s ease;}
+  @keyframes pop{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  h1{font-size:16px; color:var(--accent); text-shadow:2px 2px 0 var(--shadow); margin:0 0 10px;}
+  h2{font-size:12px; color:var(--accent3); margin:0 0 14px;}
+  p{color:var(--text-dim); font-size:10px;}
+
+  .hero{
+    text-align:center; padding:30px 10px 10px;
+  }
+  .hero .badge{
+    display:inline-block; background:var(--accent2); color:#1a0a12;
+    padding:4px 10px; font-size:9px; margin-bottom:14px;
+    box-shadow:3px 3px 0 var(--shadow);
+  }
+  .home-grid{
+    display:grid; grid-template-columns:1fr; gap:14px; margin-top:20px;
+  }
+  @media(min-width:640px){ .home-grid{grid-template-columns:repeat(2,1fr);} }
+  @media(min-width:900px){ .home-grid{grid-template-columns:repeat(4,1fr);} }
+  .home-card{
+    background:var(--panel); border:3px solid var(--panel-border);
+    box-shadow:5px 5px 0 var(--shadow);
+    padding:18px 14px; text-align:center; cursor:pointer;
+    transition:transform .06s ease;
+  }
+  .home-card:active{transform:translate(3px,3px); box-shadow:2px 2px 0 var(--shadow);}
+  .home-card .icon{font-size:26px; display:block; margin-bottom:10px;}
+  .home-card h3{font-size:11px; color:var(--accent); margin:0 0 6px;}
+  .home-card span.desc{font-size:8px; color:var(--text-dim);}
+
+  .toolbar{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:10px; margin-bottom:16px; flex-wrap:wrap;
+  }
+  .btn{
+    font-family:inherit; font-size:9px; cursor:pointer;
+    border:3px solid var(--panel-border);
+    background:var(--panel); color:var(--text);
+    padding:9px 12px;
+    box-shadow:3px 3px 0 var(--shadow);
+  }
+  .btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow);}
+  .btn.primary{background:var(--accent); color:#241a00; border-color:var(--accent);}
+  .btn.pink{background:var(--accent2); color:#2a0714; border-color:var(--accent2);}
+  .btn.teal{background:var(--accent3); color:#04241c; border-color:var(--accent3);}
+  .btn.danger{background:var(--danger); color:#2a0505; border-color:var(--danger);}
+  .btn.ghost{background:transparent;}
+  .btn:disabled{opacity:.5; cursor:default;}
+
+  .grid8{display:grid; grid-template-columns:1fr; gap:12px;}
+  @media(min-width:560px){ .grid8{grid-template-columns:1fr 1fr;} }
+
+  .team-card, .wyz-card, .ann-card{
+    background:var(--panel); border:3px solid var(--panel-border);
+    box-shadow:4px 4px 0 var(--shadow);
+    padding:12px;
+  }
+  .team-card h3, .wyz-card h3{
+    font-size:10px; color:var(--accent3); margin:0 0 8px;
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+  }
+  .team-card input.teamname, .wyz-card input.wyzname{
+    font-family:inherit; font-size:10px; background:var(--bg2); color:var(--text);
+    border:2px solid var(--panel-border); padding:6px; width:100%; margin-bottom:8px;
+  }
+  ul.players{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px;}
+  ul.players li{
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+    font-size:9px; background:var(--bg2); padding:6px 8px; border:2px solid var(--panel-border);
+  }
+  ul.players li .rm{
+    cursor:pointer; color:var(--danger); font-size:11px; border:none; background:none; font-family:inherit;
+  }
+  .addplayer{display:flex; gap:6px; margin-top:8px;}
+  .addplayer input{
+    flex:1; font-family:inherit; font-size:9px; background:var(--bg2); color:var(--text);
+    border:2px solid var(--panel-border); padding:7px; min-width:0;
+  }
+  .empty-hint{font-size:9px; color:var(--text-dim); font-style:normal;}
+
+  .wyz-card .round{
+    font-size:9px; color:var(--text-dim); margin-bottom:6px;
+  }
+  .wyz-card select, .wyz-card textarea{
+    font-family:inherit; font-size:9px; background:var(--bg2); color:var(--text);
+    border:2px solid var(--panel-border); padding:6px; width:100%; margin-bottom:6px;
+  }
+  .wyz-card textarea{resize:vertical; min-height:44px;}
+  .pill{
+    display:inline-block; font-size:8px; padding:3px 7px;
+    background:var(--accent4); color:#fff; margin-bottom:6px;
+  }
+
+  .ann-list{display:flex; flex-direction:column; gap:10px;}
+  .ann-card .meta{font-size:8px; color:var(--text-dim); margin-bottom:6px;}
+  .ann-card .txt{font-size:9px; color:var(--text); white-space:pre-wrap;}
+  .ann-new{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
+  .ann-new input, .ann-new textarea{
+    font-family:inherit; font-size:9px; background:var(--bg2); color:var(--text);
+    border:2px solid var(--panel-border); padding:8px;
+  }
+  .ann-new textarea{min-height:60px; resize:vertical;}
+
+  /* modal */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.65);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:16px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    background:var(--panel); border:4px solid var(--accent4);
+    box-shadow:6px 6px 0 var(--shadow); padding:20px; max-width:320px; width:100%;
+  }
+  .modal h3{font-size:11px; color:var(--accent); margin:0 0 12px;}
+  .modal input{
+    width:100%; font-family:inherit; font-size:12px; letter-spacing:3px;
+    background:var(--bg2); color:var(--text); border:2px solid var(--panel-border);
+    padding:10px; margin-bottom:10px; text-align:center;
+  }
+  .modal .row{display:flex; gap:8px; justify-content:flex-end;}
+  .modal .err{color:var(--danger); font-size:8px; min-height:12px; margin-bottom:6px;}
+
+  .badge-edit{
+    font-size:8px; background:var(--accent); color:#241a00; padding:4px 8px; margin-left:8px;
+  }
+  footer{
+    text-align:center; padding:30px 10px 10px; color:var(--text-dim); font-size:8px;
+  }
+  ::-webkit-scrollbar{height:8px; width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--panel-border);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚔ TURNIEJ X</div>
+  <nav>
+    <button class="navbtn active" data-view="home">Główna</button>
+    <button class="navbtn" data-view="teams">Drużyny</button>
+    <button class="navbtn" data-view="announcements">Ogłoszenia</button>
+    <button class="navbtn" data-view="challenges">Wyzwania</button>
+    <button class="navbtn" data-view="players">Gracze</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section class="view active" id="view-home">
+    <div class="hero">
+      <span class="badge">SEZON OTWARTY</span>
+      <h1>TURNIEJ X</h1>
+      <p>Baza Twojego turnieju — drużyny, ogłoszenia i wyzwania w jednym miejscu.</p>
+      <span class="badge" style="background:var(--accent4); color:#fff; margin-top:6px;">25 GRACZY vs 10 WYZWAŃ</span>
+    </div>
+    <div class="home-grid">
+      <div class="home-card" data-goto="teams">
+        <span class="icon">🛡️</span>
+        <h3>DRUŻYNY</h3>
+        <span class="desc">8 drużyn na starcie</span>
+      </div>
+      <div class="home-card" data-goto="announcements">
+        <span class="icon">📣</span>
+        <h3>OGŁOSZENIA</h3>
+        <span class="desc">Najnowsze wieści</span>
+      </div>
+      <div class="home-card" data-goto="challenges">
+        <span class="icon">🎯</span>
+        <h3>WYZWANIA</h3>
+        <span class="desc">10 wyzwań, edycja rund</span>
+      </div>
+      <div class="home-card" data-goto="players">
+        <span class="icon">🧑‍🤝‍🧑</span>
+        <h3>GRACZE</h3>
+        <span class="desc">Pełna lista zawodników</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAMS -->
+  <section class="view" id="view-teams">
+    <div class="toolbar">
+      <h2>🛡️ Drużyny <span id="edit-badge-teams"></span></h2>
+      <button class="btn primary" id="btn-edit-teams">Edytuj drużyny</button>
+    </div>
+    <div class="grid8" id="teams-grid"></div>
+  </section>
+
+  <!-- ANNOUNCEMENTS -->
+  <section class="view" id="view-announcements">
+    <div class="toolbar">
+      <h2>📣 Ogłoszenia</h2>
+    </div>
+    <div class="ann-new">
+      <input type="text" id="ann-title" placeholder="Tytuł ogłoszenia">
+      <textarea id="ann-text" placeholder="Treść ogłoszenia..."></textarea>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <button class="btn pink" id="btn-add-ann">+ Dodaj ogłoszenie</button>
+        <span style="font-size:8px; color:var(--text-dim);">🔒 wymaga kodu</span>
+      </div>
+    </div>
+    <div class="ann-list" id="ann-list"></div>
+  </section>
+
+  <!-- CHALLENGES -->
+  <section class="view" id="view-challenges">
+    <div class="toolbar">
+      <h2>🎯 Wyzwania <span id="edit-badge-wyz"></span></h2>
+      <button class="btn primary" id="btn-edit-wyz">Edytuj rundy</button>
+    </div>
+    <div class="grid8" id="wyz-grid"></div>
+  </section>
+
+  <!-- PLAYERS -->
+  <section class="view" id="view-players">
+    <div class="toolbar">
+      <h2>🧑‍🤝‍🧑 Gracze <span id="edit-badge-players"></span></h2>
+      <button class="btn primary" id="btn-edit-players">Edytuj graczy</button>
+    </div>
+    <p style="margin-bottom:14px;">Pełna lista zawodników pogrupowana według drużyn.</p>
+    <div class="grid8" id="players-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Turniej X nie jest powiązany ani sponsorowany przez Mojang ani Microsoft.<br>
+  dane zapisywane lokalnie w tej przeglądarce<br>
+  © 2026 Turniej X
+</footer>
+
+<!-- CODE MODAL -->
+<div class="modal-overlay" id="code-modal">
+  <div class="modal">
+    <h3>🔒 Podaj kod dostępu</h3>
+    <input type="password" id="code-input" maxlength="10" placeholder="••••" autocomplete="off" inputmode="numeric">
+    <div class="err" id="code-err"></div>
+    <div class="row">
+      <button class="btn ghost" id="code-cancel">Anuluj</button>
+      <button class="btn primary" id="code-ok">Odblokuj</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var ACCESS_CODE_HASH = 2085739307; // kod dostępu zapisany jako hash, nie jawnym tekstem
+  function hashCode(str){
+    var h = 5381;
+    for(var i=0;i<str.length;i++){
+      h = ((h*33) ^ str.charCodeAt(i)) >>> 0;
+    }
+    return h;
+  }
+  function checkCode(input){
+    return hashCode(input.trim()) === ACCESS_CODE_HASH;
+  }
+  var STORAGE_KEY = "turniejx_state_v1";
+
+  function defaultState(){
+    var teams = [];
+    for(var i=1;i<=8;i++){
+      teams.push({ name: "Drużyna " + i, players: [] });
+    }
+    var challenges = [];
+    for(var j=1;j<=10;j++){
+      challenges.push({ name: "Wyzwanie " + j, round: "Runda 1", notes: "" });
+    }
+    return {
+      teams: teams,
+      challenges: challenges,
+      announcements: [
+        { title: "Witamy w Turnieju X!", text: "Baza turnieju jest gotowa. Dodajcie swoje drużyny i śledźcie wyzwania.", date: new Date().toLocaleDateString('pl-PL') }
+      ]
+    };
+  }
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return defaultState();
+      var parsed = JSON.parse(raw);
+      if(!parsed || !Array.isArray(parsed.teams) || !Array.isArray(parsed.challenges)){
+        return defaultState();
+      }
+      if(!Array.isArray(parsed.announcements)) parsed.announcements = [];
+      return parsed;
+    }catch(e){
+      return defaultState();
+    }
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){ /* storage unavailable, continue in-memory only */ }
+  }
+
+  var state = loadState();
+  var editTeams = false;
+  var editWyz = false;
+  var editPlayers = false;
+  var pendingUnlock = null; // 'teams' | 'wyz'
+
+  // ---------- NAV ----------
+  var navBtns = document.querySelectorAll('.navbtn');
+  var views = document.querySelectorAll('.view');
+  function showView(name){
+    views.forEach(function(v){ v.classList.toggle('active', v.id === 'view-' + name); });
+    navBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.view === name); });
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  }
+  navBtns.forEach(function(b){
+    b.addEventListener('click', function(){ showView(b.dataset.view); });
+  });
+  document.querySelectorAll('.home-card').forEach(function(c){
+    c.addEventListener('click', function(){ showView(c.dataset.goto); });
+  });
+
+  // ---------- CODE MODAL ----------
+  var modal = document.getElementById('code-modal');
+  var codeInput = document.getElementById('code-input');
+  var codeErr = document.getElementById('code-err');
+
+  function openModal(target){
+    pendingUnlock = target;
+    codeInput.value = "";
+    codeErr.textContent = "";
+    modal.classList.add('show');
+    setTimeout(function(){ codeInput.focus(); }, 50);
+  }
+  function closeModal(){
+    modal.classList.remove('show');
+    pendingUnlock = null;
+  }
+  document.getElementById('code-cancel').addEventListener('click', closeModal);
+  document.getElementById('code-ok').addEventListener('click', tryUnlock);
+  codeInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') tryUnlock();
+  });
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); });
+
+  function tryUnlock(){
+    if(checkCode(codeInput.value)){
+      if(pendingUnlock === 'teams'){ editTeams = true; renderTeams(); }
+      if(pendingUnlock === 'wyz'){ editWyz = true; renderWyz(); }
+      if(pendingUnlock === 'ann'){ addAnnouncement(); }
+      if(pendingUnlock === 'players'){ editPlayers = true; renderPlayers(); }
+      closeModal();
+    } else {
+      codeErr.textContent = "Zły kod. Spróbuj ponownie.";
+    }
+  }
+
+  document.getElementById('btn-edit-teams').addEventListener('click', function(){
+    if(editTeams){ editTeams = false; renderTeams(); }
+    else { openModal('teams'); }
+  });
+  document.getElementById('btn-edit-wyz').addEventListener('click', function(){
+    if(editWyz){ editWyz = false; renderWyz(); }
+    else { openModal('wyz'); }
+  });
+  document.getElementById('btn-edit-players').addEventListener('click', function(){
+    if(editPlayers){ editPlayers = false; renderPlayers(); }
+    else { openModal('players'); }
+  });
+
+  // ---------- TEAMS ----------
+  var teamsGrid = document.getElementById('teams-grid');
+  var editBadgeTeams = document.getElementById('edit-badge-teams');
+  var editBtnTeams = document.getElementById('btn-edit-teams');
+
+  function renderTeams(){
+    editBadgeTeams.innerHTML = editTeams ? '<span class="badge-edit">TRYB EDYCJI</span>' : '';
+    editBtnTeams.textContent = editTeams ? 'Zakończ edycję' : 'Edytuj drużyny';
+    editBtnTeams.className = editTeams ? 'btn danger' : 'btn primary';
+    teamsGrid.innerHTML = "";
+    state.teams.forEach(function(team, ti){
+      var card = document.createElement('div');
+      card.className = 'team-card';
+
+      var h3 = document.createElement('h3');
+      h3.textContent = "🛡️ " + (ti+1);
+      card.appendChild(h3);
+
+      if(editTeams){
+        var nameInput = document.createElement('input');
+        nameInput.className = 'teamname';
+        nameInput.value = team.name;
+        nameInput.addEventListener('input', function(){
+          team.name = nameInput.value;
+          saveState();
+        });
+        card.appendChild(nameInput);
+      } else {
+        var nameDisp = document.createElement('div');
+        nameDisp.style.fontSize = '10px';
+        nameDisp.style.color = 'var(--text)';
+        nameDisp.style.marginBottom = '8px';
+        nameDisp.textContent = team.name;
+        card.appendChild(nameDisp);
+      }
+
+      var ul = document.createElement('ul');
+      ul.className = 'players';
+      if(team.players.length === 0){
+        var li0 = document.createElement('li');
+        li0.innerHTML = '<span class="empty-hint">brak graczy</span>';
+        ul.appendChild(li0);
+      }
+      team.players.forEach(function(p, pi){
+        var li = document.createElement('li');
+        var span = document.createElement('span');
+        span.textContent = p;
+        li.appendChild(span);
+        if(editTeams){
+          var rm = document.createElement('button');
+          rm.className = 'rm';
+          rm.textContent = '✕';
+          rm.addEventListener('click', function(){
+            team.players.splice(pi,1);
+            saveState();
+            renderTeams();
+          });
+          li.appendChild(rm);
+        }
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+
+      if(editTeams){
+        var addRow = document.createElement('div');
+        addRow.className = 'addplayer';
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Imię gracza...';
+        var addBtn = document.createElement('button');
+        addBtn.className = 'btn teal';
+        addBtn.textContent = '+';
+        function doAdd(){
+          var v = input.value.trim();
+          if(!v) return;
+          team.players.push(v);
+          input.value = '';
+          saveState();
+          renderTeams();
+        }
+        addBtn.addEventListener('click', doAdd);
+        input.addEventListener('keydown', function(e){ if(e.key === 'Enter') doAdd(); });
+        addRow.appendChild(input);
+        addRow.appendChild(addBtn);
+        card.appendChild(addRow);
+      }
+
+      teamsGrid.appendChild(card);
+    });
+    if(typeof renderPlayers === 'function') renderPlayers();
+  }
+  var wyzGrid = document.getElementById('wyz-grid');
+  var editBadgeWyz = document.getElementById('edit-badge-wyz');
+  var editBtnWyz = document.getElementById('btn-edit-wyz');
+  var ROUND_OPTIONS = ["Runda 1","Runda 2","Runda 3","Runda 4","Ćwierćfinał","Półfinał","Finał"];
+
+  function renderWyz(){
+    editBadgeWyz.innerHTML = editWyz ? '<span class="badge-edit">TRYB EDYCJI</span>' : '';
+    editBtnWyz.textContent = editWyz ? 'Zakończ edycję' : 'Edytuj rundy';
+    editBtnWyz.className = editWyz ? 'btn danger' : 'btn primary';
+    wyzGrid.innerHTML = "";
+    state.challenges.forEach(function(w, wi){
+      var card = document.createElement('div');
+      card.className = 'wyz-card';
+
+      var h3 = document.createElement('h3');
+      h3.textContent = "🎯 " + (wi+1);
+      card.appendChild(h3);
+
+      var pill = document.createElement('div');
+      pill.className = 'pill';
+      pill.textContent = w.round;
+      card.appendChild(pill);
+
+      if(editWyz){
+        var nameInput = document.createElement('input');
+        nameInput.className = 'wyzname';
+        nameInput.value = w.name;
+        nameInput.addEventListener('input', function(){
+          w.name = nameInput.value;
+          saveState();
+        });
+        card.appendChild(nameInput);
+
+        var select = document.createElement('select');
+        ROUND_OPTIONS.forEach(function(r){
+          var opt = document.createElement('option');
+          opt.value = r; opt.textContent = r;
+          if(r === w.round) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', function(){
+          w.round = select.value;
+          saveState();
+          renderWyz();
+        });
+        card.appendChild(select);
+
+        var ta = document.createElement('textarea');
+        ta.placeholder = 'Notatki / opis wyzwania...';
+        ta.value = w.notes || '';
+        ta.addEventListener('input', function(){
+          w.notes = ta.value;
+          saveState();
+        });
+        card.appendChild(ta);
+      } else {
+        var nameDisp = document.createElement('div');
+        nameDisp.style.fontSize = '10px';
+        nameDisp.style.marginBottom = '6px';
+        nameDisp.textContent = w.name;
+        card.appendChild(nameDisp);
+        if(w.notes){
+          var notesDisp = document.createElement('div');
+          notesDisp.style.fontSize = '8px';
+          notesDisp.style.color = 'var(--text-dim)';
+          notesDisp.textContent = w.notes;
+          card.appendChild(notesDisp);
+        }
+      }
+
+      wyzGrid.appendChild(card);
+    });
+  }
+
+  // ---------- ANNOUNCEMENTS ----------
+  var annList = document.getElementById('ann-list');
+  function renderAnn(){
+    annList.innerHTML = "";
+    var items = state.announcements.slice().reverse();
+    if(items.length === 0){
+      var e = document.createElement('p');
+      e.textContent = 'Brak ogłoszeń.';
+      annList.appendChild(e);
+      return;
+    }
+    items.forEach(function(a){
+      var card = document.createElement('div');
+      card.className = 'ann-card';
+      var meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = a.date;
+      var title = document.createElement('h3');
+      title.style.fontSize = '10px';
+      title.style.color = 'var(--accent2)';
+      title.style.margin = '0 0 6px';
+      title.textContent = a.title;
+      var txt = document.createElement('div');
+      txt.className = 'txt';
+      txt.textContent = a.text;
+      card.appendChild(meta);
+      card.appendChild(title);
+      card.appendChild(txt);
+      annList.appendChild(card);
+    });
+  }
+  function addAnnouncement(){
+    var titleEl = document.getElementById('ann-title');
+    var textEl = document.getElementById('ann-text');
+    var t = titleEl.value.trim();
+    var x = textEl.value.trim();
+    if(!t && !x) return;
+    state.announcements.push({
+      title: t || "Ogłoszenie",
+      text: x,
+      date: new Date().toLocaleDateString('pl-PL')
+    });
+    titleEl.value = ""; textEl.value = "";
+    saveState();
+    renderAnn();
+  }
+  document.getElementById('btn-add-ann').addEventListener('click', function(){
+    var titleEl = document.getElementById('ann-title');
+    var textEl = document.getElementById('ann-text');
+    if(!titleEl.value.trim() && !textEl.value.trim()) return;
+    openModal('ann');
+  });
+
+  // ---------- PLAYERS (roster) ----------
+  var playersGrid = document.getElementById('players-grid');
+  var editBadgePlayers = document.getElementById('edit-badge-players');
+  var editBtnPlayers = document.getElementById('btn-edit-players');
+  function renderPlayers(){
+    editBadgePlayers.innerHTML = editPlayers ? '<span class="badge-edit">TRYB EDYCJI</span>' : '';
+    editBtnPlayers.textContent = editPlayers ? 'Zakończ edycję' : 'Edytuj graczy';
+    editBtnPlayers.className = editPlayers ? 'btn danger' : 'btn primary';
+    playersGrid.innerHTML = "";
+    state.teams.forEach(function(team, ti){
+      var card = document.createElement('div');
+      card.className = 'team-card';
+      var h3 = document.createElement('h3');
+      h3.textContent = "🛡️ " + team.name;
+      card.appendChild(h3);
+      var ul = document.createElement('ul');
+      ul.className = 'players';
+      if(team.players.length === 0){
+        var li0 = document.createElement('li');
+        li0.innerHTML = '<span class="empty-hint">brak graczy</span>';
+        ul.appendChild(li0);
+      }
+      team.players.forEach(function(p, pi){
+        var li = document.createElement('li');
+        var span = document.createElement('span');
+        span.textContent = p;
+        li.appendChild(span);
+        if(editPlayers){
+          var rm = document.createElement('button');
+          rm.className = 'rm';
+          rm.textContent = '✕';
+          rm.addEventListener('click', function(){
+            team.players.splice(pi,1);
+            saveState();
+            renderPlayers();
+          });
+          li.appendChild(rm);
+        }
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+
+      if(editPlayers){
+        var addRow = document.createElement('div');
+        addRow.className = 'addplayer';
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Imię gracza...';
+        var addBtn = document.createElement('button');
+        addBtn.className = 'btn teal';
+        addBtn.textContent = '+';
+        function doAdd(){
+          var v = input.value.trim();
+          if(!v) return;
+          team.players.push(v);
+          input.value = '';
+          saveState();
+          renderPlayers();
+        }
+        addBtn.addEventListener('click', doAdd);
+        input.addEventListener('keydown', function(e){ if(e.key === 'Enter') doAdd(); });
+        addRow.appendChild(input);
+        addRow.appendChild(addBtn);
+        card.appendChild(addRow);
+      }
+
+      playersGrid.appendChild(card);
+    });
+  }
+
+  // ---------- INIT ----------
+  renderTeams();
+  renderWyz();
+  renderAnn();
+  renderPlayers();
+})();
+</script>
+</body>
+</html>
