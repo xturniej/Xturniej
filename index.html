@@ -416,6 +416,11 @@
     return hashCode(input.trim()) === ACCESS_CODE_HASH;
   }
   var STORAGE_KEY = "turniejx_state_v1";
+  // dane z jsonbin.io — to jest WSPÓLNA baza dla wszystkich odwiedzających stronę
+  var JSONBIN_ID = "6ab28667ffd5d16053232e57";
+  var JSONBIN_KEY = "$2a$10$9JYqjvB1XaqyzENSpkIHae6zMROxjSTIn8rzmTTG2NbBoPdZnqR/a";
+  var SYNC_URL = "https://api.jsonbin.io/v3/b/" + JSONBIN_ID;
+  var syncReady = (JSONBIN_ID !== "WSTAW_TU_ID_BINU" && JSONBIN_KEY !== "WSTAW_TU_X_MASTER_KEY");
 
   function defaultState(){
     var teams = [];
@@ -435,28 +440,62 @@
     };
   }
 
-  function loadState(){
+  function isValidState(parsed){
+    return parsed && Array.isArray(parsed.teams) && Array.isArray(parsed.challenges);
+  }
+
+  function loadLocalCache(){
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return defaultState();
+      if(!raw) return null;
       var parsed = JSON.parse(raw);
-      if(!parsed || !Array.isArray(parsed.teams) || !Array.isArray(parsed.challenges)){
-        return defaultState();
-      }
+      if(!isValidState(parsed)) return null;
       if(!Array.isArray(parsed.announcements)) parsed.announcements = [];
       return parsed;
     }catch(e){
-      return defaultState();
+      return null;
     }
   }
 
-  function saveState(){
+  function saveLocalCache(){
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }catch(e){ /* storage unavailable, continue in-memory only */ }
   }
 
-  var state = loadState();
+  // Pobiera wspólny stan ze wszystkich urządzeń
+  function fetchRemoteState(){
+    if(!syncReady) return Promise.resolve(null);
+    return fetch(SYNC_URL + "/latest", {
+        cache: 'no-store',
+        headers: { 'X-Master-Key': JSONBIN_KEY }
+      })
+      .then(function(res){ if(!res.ok) throw new Error('bad response'); return res.json(); })
+      .then(function(data){
+        var parsed = data && data.record;
+        if(!isValidState(parsed)) return null;
+        if(!Array.isArray(parsed.announcements)) parsed.announcements = [];
+        return parsed;
+      })
+      .catch(function(){ return null; });
+  }
+
+  // Wysyła aktualny stan do wspólnej bazy, żeby wszyscy go zobaczyli
+  function pushRemoteState(){
+    if(!syncReady) return;
+    fetch(SYNC_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify(state)
+    }).catch(function(){ /* brak sieci — zostanie tylko lokalnie, spróbujemy przy kolejnej zmianie */ });
+  }
+
+  function saveState(){
+    saveLocalCache();
+    pushRemoteState();
+  }
+
+  var state = loadLocalCache() || defaultState();
   var editTeams = false;
   var editWyz = false;
   var editPlayers = false;
@@ -874,10 +913,40 @@
   }
 
   // ---------- INIT ----------
-  renderTeams();
-  renderWyz();
-  renderAnn();
-  renderPlayers();
+  function renderAll(){
+    renderTeams();
+    renderWyz();
+    renderAnn();
+    renderPlayers();
+  }
+
+  // pierwsze uruchomienie: pokaż lokalną/domyślną wersję od razu,
+  // a jak tylko przyjdzie wspólna baza — podmień i odśwież
+  renderAll();
+  fetchRemoteState().then(function(remote){
+    if(remote){
+      state = remote;
+      saveLocalCache();
+      renderAll();
+    } else if(syncReady){
+      // baza pusta lub niedostępna przy pierwszym uruchomieniu — wyślij to, co mamy
+      pushRemoteState();
+    }
+  });
+
+  // co 12 sekund sprawdź, czy ktoś inny coś zmienił (tylko gdy nikt nie edytuje właśnie na tym urządzeniu)
+  setInterval(function(){
+    if(editTeams || editWyz || editPlayers) return;
+    fetchRemoteState().then(function(remote){
+      if(!remote) return;
+      var incoming = JSON.stringify(remote);
+      if(incoming !== JSON.stringify(state)){
+        state = remote;
+        saveLocalCache();
+        renderAll();
+      }
+    });
+  }, 12000);
 })();
 </script>
 </body>
